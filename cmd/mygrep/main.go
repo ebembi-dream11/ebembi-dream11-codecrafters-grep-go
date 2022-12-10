@@ -2,7 +2,7 @@ package main
 
 import (
 	// Uncomment this to pass the first stage
-	// "bytes"
+	"bytes"
 	"fmt"
 	"io"
 	"os"
@@ -48,7 +48,7 @@ func matchLine(line []byte, pattern string) (bool, error) {
 	fmt.Println("Logs from your program will appear here!")
 
 	// Uncomment this to pass the first stage
-	// ok = bytes.ContainsAny(line, pattern)
+	ok = bytes.ContainsAny(line, pattern)
 
 	return ok, nil
 }
