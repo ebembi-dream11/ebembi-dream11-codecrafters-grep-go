@@ -69,8 +69,21 @@ func matchLine(line []byte, pattern string) (bool, error) {
 			}
 			return false, nil
 
-		} else if pattern[0] == 1 {
+		} else if utf8.RuneCountInString(pattern) > 2 || pattern[0] == '[' || pattern[len(pattern)-1] == ']' {
+			//fmt.Println("[] vala pattern")
+			mymap := make(map[rune]int)
+			for i := 1; i < len(pattern)-1; i++ {
+				mymap[rune(pattern[i])] = 1
+				//fmt.Println(string(pattern[i]))
 
+			}
+			for i := 0; i < len(line); i++ {
+				_, ok := mymap[rune(line[i])]
+				if ok {
+					return true, nil
+				}
+			}
+			return false, nil
 		}
 
 		return false, fmt.Errorf("unsupported pattern: %q", pattern)
