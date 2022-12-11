@@ -46,7 +46,7 @@ func main() {
 func matchLine(line []byte, pattern string) (bool, error) {
 	//fmt.Println("This is my pattern ", pattern)
 	// To see if pattern size is only equal to 1
-
+	//yes
 	if utf8.RuneCountInString(pattern) != 1 {
 		if pattern == "\\d" {
 			//var isdigit = false
