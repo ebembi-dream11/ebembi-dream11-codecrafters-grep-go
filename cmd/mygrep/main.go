@@ -69,6 +69,8 @@ func matchLine(line []byte, pattern string) (bool, error) {
 			}
 			return false, nil
 
+		} else if pattern[0] == 1 {
+
 		}
 
 		return false, fmt.Errorf("unsupported pattern: %q", pattern)
