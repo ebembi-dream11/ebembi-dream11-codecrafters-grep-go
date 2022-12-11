@@ -59,6 +59,16 @@ func matchLine(line []byte, pattern string) (bool, error) {
 				}
 			}
 			return false, nil
+		} else if pattern == "\\w" {
+			for i := 0; i < len(line); i++ {
+				if unicode.IsNumber(rune(line[i])) || unicode.IsLetter(rune(line[i])) {
+					//fmt.Println("number hai toh chalega bhidu")
+					return true, nil
+
+				}
+			}
+			return false, nil
+
 		}
 
 		return false, fmt.Errorf("unsupported pattern: %q", pattern)
