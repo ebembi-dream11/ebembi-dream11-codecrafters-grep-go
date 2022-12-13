@@ -95,10 +95,10 @@ func matchLine(line []byte, pattern string) (bool, error) {
 			for i := 0; i < len(line); i++ {
 				_, ok := mymap[rune(line[i])]
 				if ok {
-					return true, nil
+					return false, nil
 				}
 			}
-			return false, nil
+			return true, nil
 		}
 
 		return false, fmt.Errorf("unsupported pattern: %q", pattern)
