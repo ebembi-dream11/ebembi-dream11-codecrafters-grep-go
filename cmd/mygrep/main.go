@@ -36,7 +36,7 @@ func main() {
 	}
 
 	if !ok {
-		//fmt.Println("Pattern didn't match")
+		fmt.Println("Pattern didn't match")
 		os.Exit(1)
 	}
 
@@ -69,8 +69,8 @@ func matchLine(line []byte, pattern string) (bool, error) {
 			}
 			return false, nil
 
-		} else if utf8.RuneCountInString(pattern) > 2 && pattern[0] == '[' && pattern[len(pattern)-1] == ']' {
-			//fmt.Println("[] vala pattern")
+		} else if utf8.RuneCountInString(pattern) > 2 && pattern[0] == '[' && pattern[1] != '^' && pattern[len(pattern)-1] == ']' {
+			fmt.Println("[] vala pattern")
 			mymap := make(map[rune]int)
 			for i := 1; i < len(pattern)-1; i++ {
 				mymap[rune(pattern[i])] = 1
@@ -85,7 +85,7 @@ func matchLine(line []byte, pattern string) (bool, error) {
 			}
 			return false, nil
 		} else if utf8.RuneCountInString(pattern) > 3 && pattern[0] == '[' && pattern[1] == '^' && pattern[len(pattern)-1] == ']' {
-			//fmt.Println("[] vala pattern")
+			fmt.Println("[^] vala pattern")
 			mymap := make(map[rune]int)
 			for i := 1; i < len(pattern)-1; i++ {
 				mymap[rune(pattern[i])] = 1
