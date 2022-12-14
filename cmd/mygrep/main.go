@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 	"unicode"
 	"unicode/utf8"
 )
@@ -44,73 +45,82 @@ func main() {
 }
 
 func matchLine(line []byte, pattern string) (bool, error) {
-	//fmt.Println("This is my pattern ", pattern)
-	// To see if pattern size is only equal to 1
-	//yes
-	if utf8.RuneCountInString(pattern) != 1 {
-		if pattern == "\\d" {
-			//var isdigit = false
-			//fmt.Println("This is my pattern /d")
-			for i := 0; i < len(line); i++ {
-				if unicode.IsNumber(rune(line[i])) {
-					//fmt.Println("number hai toh chalega bhidu")
-					return true, nil
-
-				}
-			}
-			return false, nil
-		} else if pattern == "\\w" {
-			for i := 0; i < len(line); i++ {
-				if unicode.IsNumber(rune(line[i])) || unicode.IsLetter(rune(line[i])) {
-					//fmt.Println("number hai toh chalega bhidu")
-					return true, nil
-
-				}
-			}
-			return false, nil
-
-		} else if utf8.RuneCountInString(pattern) > 2 && pattern[0] == '[' && pattern[1] != '^' && pattern[len(pattern)-1] == ']' {
-			fmt.Println("[] vala pattern")
-			mymap := make(map[rune]int)
-			for i := 1; i < len(pattern)-1; i++ {
-				mymap[rune(pattern[i])] = 1
-				//fmt.Println(string(pattern[i]))
-
-			}
-			for i := 0; i < len(line); i++ {
-				_, ok := mymap[rune(line[i])]
-				if ok {
-					return true, nil
-				}
-			}
-			return false, nil
-		} else if utf8.RuneCountInString(pattern) > 3 && pattern[0] == '[' && pattern[1] == '^' && pattern[len(pattern)-1] == ']' {
-			fmt.Println("[^] vala pattern")
-			mymap := make(map[rune]int)
-			for i := 1; i < len(pattern)-1; i++ {
-				mymap[rune(pattern[i])] = 1
-				//fmt.Println(string(pattern[i]))
-
-			}
-			for i := 0; i < len(line); i++ {
-				_, ok := mymap[rune(line[i])]
-				if ok {
-					return false, nil
-				}
-			}
+	// if pattern is empty, then it will always match
+	if pattern == "" {
+		return true, nil
+	}
+	for i := range string(line) {
+		ok, err := matchHere(line[i:], pattern)
+		if err != nil {
+			return false, err
+		}
+		if ok {
 			return true, nil
 		}
+	}
+	return false, nil
 
-		return false, fmt.Errorf("unsupported pattern: %q", pattern)
+}
+func matchHere(line []byte, pattern string) (bool, error) {
+	switch {
+	case pattern == "": // empty pattern matches anything
+		return true, nil
+
+	case len(line) == 0: // if there's no input, the match failed
+		return false, nil
+
+	case strings.HasPrefix(pattern, `\d`):
+		char, size := utf8.DecodeRune(line)
+		if !unicode.IsDigit(char) {
+			return false, nil
+		}
+
+		return matchHere(line[size:], pattern[2:]) // cut matching and continue for the remaining
+
+	case strings.HasPrefix(pattern, `\w`):
+		char, size := utf8.DecodeRune(line)
+		if !unicode.IsLetter(char) {
+			return false, nil
+		}
+
+		return matchHere(line[size:], pattern[2:])
+
+	case strings.HasPrefix(pattern, "[^"):
+		end := strings.IndexByte(pattern, ']')
+		charset := pattern[2:end]
+
+		char, size := utf8.DecodeRune(line)
+		if strings.ContainsRune(charset, char) {
+			return false, nil
+		}
+
+		return matchHere(line[size:], pattern[end+1:])
+
+	case strings.HasPrefix(pattern, "["):
+		end := strings.IndexByte(pattern, ']')
+		charset := pattern[1:end]
+
+		char, size := utf8.DecodeRune(line)
+		if !strings.ContainsRune(charset, char) {
+			return false, nil
+		}
+
+		return matchHere(line[size:], pattern[end+1:])
+
+	case utf8.RuneCountInString(pattern) == 1:
+		return bytes.ContainsAny(line, pattern), nil
 	}
 
-	var ok bool
+	patternChar, patternCharSize := utf8.DecodeRuneInString(pattern)
+	if patternChar == utf8.RuneError {
+		return false, fmt.Errorf("bad pattern")
+	}
 
-	// You can use print statements as follows for debugging, they'll be visible when running tests.
-	//fmt.Println("Logs from your program will appear here!")
+	char, size := utf8.DecodeRune(line)
 
-	// Uncomment this to pass the first stage
-	ok = bytes.ContainsAny(line, pattern)
+	if char != patternChar {
+		return false, nil
+	}
 
-	return ok, nil
+	return matchHere(line[size:], pattern[patternCharSize:])
 }
